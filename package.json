@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/NodePolus/nodepolus",
   "dependencies": {
+    "@nodepolus/framework": "^3.0.0",
     "commonjs": "^0.0.1",
     "ts-node": "^9.1.0"
   },
@@ -31,7 +32,6 @@
     "@typescript-eslint/eslint-plugin": "^4.8.2",
     "@typescript-eslint/parser": "^4.8.2",
     "eslint": "^7.14.0",
-    "eslint-config-recommended": "^4.1.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-tsdoc": "^0.2.11",
     "tsconfig-paths": "^3.9.0",

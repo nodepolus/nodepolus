@@ -1,5 +1,5 @@
-import { MessageReader, MessageWriter } from "../../../src/util/hazelMessage";
-import { BaseGameDataPacket } from "../../../src/protocol/packets/gameData";
+import { MessageReader, MessageWriter } from "@nodepolus/framework/src/util/hazelMessage";
+import { BaseGameDataPacket } from "@nodepolus/framework/src/protocol/packets/gameData";
 
 export class TestGameDataPacket extends BaseGameDataPacket {
   constructor(

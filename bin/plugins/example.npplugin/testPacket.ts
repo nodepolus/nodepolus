@@ -1,5 +1,5 @@
-import { MessageReader, MessageWriter } from "../../../src/util/hazelMessage";
-import { BaseRootPacket } from "../../../src/protocol/packets/root";
+import { MessageReader, MessageWriter } from "@nodepolus/framework/src/util/hazelMessage";
+import { BaseRootPacket } from "@nodepolus/framework/src/protocol/packets/root";
 
 export class TestPacket extends BaseRootPacket {
   constructor(

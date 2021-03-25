@@ -1,19 +1,19 @@
-import { FileAnnouncementDriver } from "../../../src/announcementServer/drivers";
-import { BaseInnerNetObject } from "../../../src/protocol/entities/baseEntity";
-import { ConnectionInfo, DisconnectReason, Vector2 } from "../../../src/types";
-import { MessageReader, MessageWriter } from "../../../src/util/hazelMessage";
-import { AddressFamily, InnerNetObjectType } from "../../../src/types/enums";
-import { AnnouncementServer } from "../../../src/announcementServer";
-import { BasePlugin, PluginMetadata } from "../../../src/api/plugin";
-import { GameDataPacket } from "../../../src/protocol/packets/root";
-import { RpcPacket } from "../../../src/protocol/packets/gameData";
-import { PlayerJoinedEvent } from "../../../src/api/events/player";
-import { RootPacket } from "../../../src/protocol/packets/hazel";
-import { Connection } from "../../../src/protocol/connection";
-import { shuffleArrayClone } from "../../../src/util/shuffle";
+import { FileAnnouncementDriver } from "@nodepolus/framework/src/announcementServer/drivers";
+import { BaseInnerNetObject } from "@nodepolus/framework/src/protocol/entities/baseEntity";
+import { ConnectionInfo, DisconnectReason, Vector2 } from "@nodepolus/framework/src/types";
+import { MessageReader, MessageWriter } from "@nodepolus/framework/src/util/hazelMessage";
+import { AddressFamily, InnerNetObjectType } from "@nodepolus/framework/src/types/enums";
+import { AnnouncementServer } from "@nodepolus/framework/src/announcementServer";
+import { BasePlugin, PluginMetadata } from "@nodepolus/framework/src/api/plugin";
+import { GameDataPacket } from "@nodepolus/framework/src/protocol/packets/root";
+import { RpcPacket } from "@nodepolus/framework/src/protocol/packets/gameData";
+import { PlayerJoinedEvent } from "@nodepolus/framework/src/api/events/player";
+import { RootPacket } from "@nodepolus/framework/src/protocol/packets/hazel";
+import { Connection } from "@nodepolus/framework/src/protocol/connection";
+import { shuffleArrayClone } from "@nodepolus/framework/src/util/shuffle";
+import { Hmac } from "@nodepolus/framework/src/util/hmac";
 import { TestGameDataPacket } from "./testGameDataPacket";
 import { TestRpcPacket } from "./testRpcPacket";
-import { Hmac } from "../../../src/util/hmac";
 import { TestPacket } from "./testPacket";
 import path from "path";
 import {
@@ -21,7 +21,7 @@ import {
   ServerPacketInCustomEvent,
   ServerPacketInGameDataCustomEvent,
   ServerPacketInRpcCustomEvent,
-} from "../../../src/api/events/server";
+} from "@nodepolus/framework/src/api/events/server";
 
 /**
  * Grab the server and announcement server from the global object.

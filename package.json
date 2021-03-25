@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "description": "An open-source Among Us server implementation in TypeScript",
   "engines": {
-    "node": ">=14"
+    "node": ">=15"
   },
   "scripts": {
     "dev": "NP_LOG_LEVEL=trace npm start",

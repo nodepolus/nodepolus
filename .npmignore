@@ -1,0 +1,6 @@
+bin/*
+*.md
+.editorconfig
+.eslintignore
+.eslintrc
+.gitattributes

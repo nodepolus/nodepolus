@@ -1,0 +1,40 @@
+{
+  "name": "@nodepolus/nodepolus",
+  "version": "3.0.0",
+  "description": "An open-source Among Us server implementation in TypeScript",
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "dev": "NP_LOG_LEVEL=trace npm start",
+    "start": "ts-node bin/polus",
+    "lint": "eslint . --ext .ts",
+    "lint-and-fix": "eslint . --ext .ts --fix",
+    "publish": "npm publish --registry https://npm.polus.gg"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NodePolus/nodepolus.git"
+  },
+  "author": "",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/NodePolus/nodepolus/issues"
+  },
+  "homepage": "https://github.com/NodePolus/nodepolus",
+  "dependencies": {
+    "commonjs": "^0.0.1",
+    "ts-node": "^9.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.10",
+    "@typescript-eslint/eslint-plugin": "^4.8.2",
+    "@typescript-eslint/parser": "^4.8.2",
+    "eslint": "^7.14.0",
+    "eslint-config-recommended": "^4.1.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-tsdoc": "^0.2.11",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^4.1.2"
+  }
+}

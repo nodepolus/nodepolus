@@ -16,7 +16,7 @@ import { DEFAULT_CONFIG } from "@nodepolus/framework/src/util/constants";
 import { BasePlugin } from "@nodepolus/framework/src/api/plugin";
 import { Logger } from "@nodepolus/framework/src/logger";
 import { Server } from "@nodepolus/framework/src/server";
-import meta from "@nodepolus/framework/package.json";
+import meta from "../package.json";
 import fs from "fs/promises";
 import path from "path";
 
@@ -156,26 +156,31 @@ async function loadPluginPackages(): Promise<void> {
   const dependencies = Object.keys(meta.dependencies);
 
   for (let i = 0; i < dependencies.length; i++) {
-    const pluginMeta = await import(`${dependencies[i]}/package.json`);
+    try {
+      const pluginMeta = await import(`${dependencies[i]}/package.json`);
 
-    if (pluginMeta["np-plugin"] ?? false) {
-      logger.verbose(`Loading "${dependencies[i]}" v${pluginMeta.version}`);
+      if (pluginMeta["np-plugin"] ?? false) {
+        logger.verbose(`Loading "${dependencies[i]}" v${pluginMeta.version}`);
 
-      const exported = await import(dependencies[i]);
-      let name = dependencies[i];
-      let version = pluginMeta.version;
+        const exported = await import(dependencies[i]);
+        let name = dependencies[i];
+        let version = pluginMeta.version;
 
-      if (exported.default !== undefined) {
-        try {
-          // eslint-disable-next-line new-cap
-          const plugin: BasePlugin = new exported.default();
+        if (exported.default !== undefined) {
+          try {
+            // eslint-disable-next-line new-cap
+            const plugin: BasePlugin = new exported.default();
 
-          name = plugin.getPluginName();
-          version = plugin.getPluginVersionString();
-        } catch (error) {}
+            name = plugin.getPluginName();
+            version = plugin.getPluginVersionString();
+          } catch (error) {}
+        }
+
+        logger.info(`Loaded plugin: ${name} v${version}`);
       }
-
-      logger.info(`Loaded plugin: ${name} v${version}`);
+    } catch {
+      logger.verbose(`Caught error while loading plugin: ${dependencies[i]}`);
+      continue;
     }
   }
 }

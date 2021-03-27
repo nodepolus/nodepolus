@@ -178,8 +178,10 @@ async function loadPluginPackages(): Promise<void> {
 
         logger.info(`Loaded plugin: ${name} v${version}`);
       }
-    } catch {
-      logger.verbose(`Caught error while loading plugin: ${dependencies[i]}`);
+    } catch (error) {
+      logger.error(`An error occured while loading ${dependencies[i]}`);
+      logger.catch(error);
+
       continue;
     }
   }

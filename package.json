@@ -9,8 +9,7 @@
     "dev": "NP_LOG_LEVEL=trace npm start",
     "start": "ts-node bin/polus",
     "lint": "eslint . --ext .ts",
-    "lint-and-fix": "eslint . --ext .ts --fix",
-    "publish": "npm publish --registry https://npm.polus.gg"
+    "lint-and-fix": "eslint . --ext .ts --fix"
   },
   "repository": {
     "type": "git",

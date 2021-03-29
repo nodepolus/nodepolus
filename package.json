@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/NodePolus/nodepolus",
   "dependencies": {
-    "@nodepolus/framework": "^3.0.0",
+    "@nodepolus/framework": "latest",
     "commonjs": "^0.0.1",
     "ts-node": "^9.1.0"
   },

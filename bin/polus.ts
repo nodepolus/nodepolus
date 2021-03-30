@@ -93,7 +93,7 @@ function listenForShutdown(): void {
  *
  * @param pluginsPath - The path to the plugins folder (default `__dirname/plugins`)
  */
-async function loadPluginsFolder(pluginsPath: string = path.join(__dirname, "plugins")): Promise<void> {
+async function loadPluginsFolder(pluginConfigs: Record<string, Record<string, unknown>>, pluginsPath: string = path.join(__dirname, "plugins")): Promise<void> {
   try {
     await fs.access(pluginsPath);
   } catch (error) {
@@ -141,8 +141,14 @@ async function loadPluginsFolder(pluginsPath: string = path.join(__dirname, "plu
       continue;
     }
 
+    let pluginConfig: Record<string, unknown> = {};
+
+    if (fileName in pluginConfigs) {
+      pluginConfig = pluginConfigs[fileName];
+    }
+
     // eslint-disable-next-line new-cap
-    const plugin: BasePlugin = new exported.default();
+    const plugin: BasePlugin = new exported.default(pluginConfig);
 
     logger.info(`Loaded plugin: ${plugin.getPluginName()} v${plugin.getPluginVersionString()}`);
   }
@@ -152,7 +158,7 @@ async function loadPluginsFolder(pluginsPath: string = path.join(__dirname, "plu
  * Loads all plugins installed via npm by iterating through the dependencies in
  * the `package.json` file.
  */
-async function loadPluginPackages(): Promise<void> {
+async function loadPluginPackages(pluginConfigs: Record<string, Record<string, unknown>>): Promise<void> {
   const dependencies = Object.keys(meta.dependencies);
 
   for (let i = 0; i < dependencies.length; i++) {
@@ -165,11 +171,16 @@ async function loadPluginPackages(): Promise<void> {
         const exported = await import(dependencies[i]);
         let name = dependencies[i];
         let version = pluginMeta.version;
+        let pluginConfig: Record<string, unknown> = {};
+
+        if (name in pluginConfigs) {
+          pluginConfig = pluginConfigs[name];
+        }
 
         if (exported.default !== undefined) {
           try {
             // eslint-disable-next-line new-cap
-            const plugin: BasePlugin = new exported.default();
+            const plugin: BasePlugin = new exported.default(pluginConfig);
 
             name = plugin.getPluginName();
             version = plugin.getPluginVersionString();
@@ -187,11 +198,11 @@ async function loadPluginPackages(): Promise<void> {
   }
 }
 
-async function loadPlugins(): Promise<void> {
+async function loadPlugins(pluginConfigs: Record<string, Record<string, unknown>>): Promise<void> {
   logger.info("Loading plugins");
 
-  await loadPluginsFolder();
-  await loadPluginPackages();
+  await loadPluginsFolder(pluginConfigs);
+  await loadPluginPackages(pluginConfigs);
 }
 
 /**
@@ -219,10 +230,15 @@ async function start(enableAnnouncementServer: boolean = server.getConfig().enab
 
   try {
     const serverConfig: ServerConfig = await loadConfig();
+    let pluginConfigs: Record<string, Record<string, unknown>> = {};
+
+    if ("plugin-configs" in serverConfig) {
+      pluginConfigs = serverConfig["plugin-configs"];
+    }
 
     createServers(serverConfig);
     listenForShutdown();
-    await loadPlugins();
+    await loadPlugins(pluginConfigs);
     await start();
   } catch (error) {
     logger.catch(error);

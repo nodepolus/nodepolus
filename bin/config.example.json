@@ -18,5 +18,6 @@
     "maxFileSizeInBytes": 104857600,
     "maxFiles": 10,
     "filename": "server.log"
-  }
+  },
+  "plugin-configs": {}
 }

@@ -17,6 +17,7 @@ import { BasePlugin } from "@nodepolus/framework/src/api/plugin";
 import { Logger } from "@nodepolus/framework/src/logger";
 import { Server } from "@nodepolus/framework/src/server";
 import meta from "../package.json";
+import toposort from "toposort";
 import fs from "fs/promises";
 import path from "path";
 
@@ -82,6 +83,91 @@ function listenForShutdown(): void {
   process.on("exit", cleanupHandler.bind(null, 0));
   process.on("SIGINT", cleanupHandler.bind(null, 2));
   process.on("SIGTERM", cleanupHandler.bind(null, 15));
+}
+
+/**
+ * Loads all plugins installed via npm by iterating through the dependencies in
+ * the `package.json` file.
+ */
+async function loadPluginPackages(pluginConfigs: Record<string, Record<string, unknown>>): Promise<void> {
+  const dependencies = Object.keys(meta.dependencies);
+  const lonePlugins: string[] = [];
+  const graph: [string, string][] = [];
+
+  for (let i = 0; i < dependencies.length; i++) {
+    try {
+      const packageMeta = await import(`${dependencies[i]}/package.json`);
+
+      if (packageMeta["np-plugin"] ?? false) {
+        const childDependencies = Object.keys(packageMeta.dependencies);
+        let hasDependencies = false;
+
+        for (let j = 0; j < childDependencies.length; j++) {
+          try {
+            const childMeta = await import(`${childDependencies[j]}/package.json`);
+
+            if (childMeta["np-plugin"] ?? false) {
+              hasDependencies = true;
+
+              graph.push([childDependencies[j], dependencies[i]]);
+            }
+          } catch (childError) {
+            logger.error(`An error occured while loading the package.json for ${childDependencies[j]}`);
+            logger.catch(childError);
+
+            continue;
+          }
+        }
+
+        if (!hasDependencies) {
+          lonePlugins.push(dependencies[i]);
+        }
+      }
+    } catch (parentError) {
+      logger.error(`An error occured while loading the package.json for ${dependencies[i]}`);
+      logger.catch(parentError);
+
+      continue;
+    }
+  }
+
+  const pluginsToLoad = [...new Set([...lonePlugins, ...toposort(graph)])];
+
+  for (let i = 0; i < pluginsToLoad.length; i++) {
+    try {
+      const pluginMeta = await import(`${pluginsToLoad[i]}/package.json`);
+
+      if (pluginMeta["np-plugin"] ?? false) {
+        logger.verbose(`Loading "${pluginsToLoad[i]}" v${pluginMeta.version}`);
+
+        const exported = await import(pluginsToLoad[i]);
+        let name = pluginsToLoad[i];
+        let version = pluginMeta.version;
+        let pluginConfig: Record<string, unknown> = {};
+
+        if (name in pluginConfigs) {
+          pluginConfig = pluginConfigs[name];
+        }
+
+        if (exported.default !== undefined) {
+          try {
+            // eslint-disable-next-line new-cap
+            const plugin: BasePlugin = new exported.default(pluginConfig);
+
+            name = plugin.getPluginName();
+            version = plugin.getPluginVersionString();
+          } catch (error) {}
+        }
+
+        logger.info(`Loaded plugin: ${name} v${version}`);
+      }
+    } catch (error) {
+      logger.error(`An error occured while loading ${pluginsToLoad[i]}`);
+      logger.catch(error);
+
+      continue;
+    }
+  }
 }
 
 /**
@@ -154,55 +240,11 @@ async function loadPluginsFolder(pluginConfigs: Record<string, Record<string, un
   }
 }
 
-/**
- * Loads all plugins installed via npm by iterating through the dependencies in
- * the `package.json` file.
- */
-async function loadPluginPackages(pluginConfigs: Record<string, Record<string, unknown>>): Promise<void> {
-  const dependencies = Object.keys(meta.dependencies);
-
-  for (let i = 0; i < dependencies.length; i++) {
-    try {
-      const pluginMeta = await import(`${dependencies[i]}/package.json`);
-
-      if (pluginMeta["np-plugin"] ?? false) {
-        logger.verbose(`Loading "${dependencies[i]}" v${pluginMeta.version}`);
-
-        const exported = await import(dependencies[i]);
-        let name = dependencies[i];
-        let version = pluginMeta.version;
-        let pluginConfig: Record<string, unknown> = {};
-
-        if (name in pluginConfigs) {
-          pluginConfig = pluginConfigs[name];
-        }
-
-        if (exported.default !== undefined) {
-          try {
-            // eslint-disable-next-line new-cap
-            const plugin: BasePlugin = new exported.default(pluginConfig);
-
-            name = plugin.getPluginName();
-            version = plugin.getPluginVersionString();
-          } catch (error) {}
-        }
-
-        logger.info(`Loaded plugin: ${name} v${version}`);
-      }
-    } catch (error) {
-      logger.error(`An error occured while loading ${dependencies[i]}`);
-      logger.catch(error);
-
-      continue;
-    }
-  }
-}
-
 async function loadPlugins(pluginConfigs: Record<string, Record<string, unknown>>): Promise<void> {
   logger.info("Loading plugins");
 
-  await loadPluginsFolder(pluginConfigs);
   await loadPluginPackages(pluginConfigs);
+  await loadPluginsFolder(pluginConfigs);
 }
 
 /**
@@ -230,11 +272,7 @@ async function start(enableAnnouncementServer: boolean = server.getConfig().enab
 
   try {
     const serverConfig: ServerConfig = await loadConfig();
-    let pluginConfigs: Record<string, Record<string, unknown>> = {};
-
-    if ("plugin-configs" in serverConfig) {
-      pluginConfigs = serverConfig["plugin-configs"];
-    }
+    const pluginConfigs: Record<string, Record<string, unknown>> = serverConfig.plugins ?? {};
 
     createServers(serverConfig);
     listenForShutdown();
